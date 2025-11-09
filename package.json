@@ -6,16 +6,24 @@
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
-    "dist"
+    "src"
   ],
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iirose-plugins/koishi-plugin-iirose-cut/issues/new/choose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iirose-plugins/koishi-plugin-iirose-cut.git"
+  },
+  "homepage": "https://github.com/iirose-plugins/koishi-plugin-iirose-cut",
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "iirose-cut"
   ],
   "peerDependencies": {
-    "koishi": "^4.18.7",
-    "koishi-plugin-adapter-iirose": "^0.4.4"
+    "koishi": "^4.18.7"
   }
 }
