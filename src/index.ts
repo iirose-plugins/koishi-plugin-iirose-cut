@@ -13,7 +13,7 @@ BOT需要有房间成员的星标权限 / 管理权限。
 
 ---
 
-使用指令以切歌：
+也可以使用指令切歌：
 
 - iirose.media.cut ： 终止当前歌曲
 - iirose.media.cutall ： 终止所有歌曲
@@ -62,9 +62,6 @@ export function apply(ctx: Context, config: Config)
       await session.bot.internal.cutAll();
       return;
     });
-
-
-  /* 从这里开始编辑一下内容。上面的不要修改 */
 
   // 用于存储用户和他们点播的歌曲，主要用于调试和记录
   const userSongs = new Map<string, Set<string>>(); // username -> Set<songTitle>
