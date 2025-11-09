@@ -99,7 +99,7 @@ export function apply(ctx: Context, config: Config)
               userSongs.set(username, new Set<string>());
             }
             userSongs.get(username).add(songTitle);
-            ctx.logger.info(`记录到用户 ${username} 点播了歌曲: ${songTitle}`);
+            // ctx.logger.info(`记录到用户 ${username} 点播了歌曲: ${songTitle}`);
           }
         } catch (e)
         {
@@ -116,13 +116,13 @@ export function apply(ctx: Context, config: Config)
       if (session.username && leftUsers.has(session.username))
       {
         leftUsers.delete(session.username);
-        ctx.logger.info(`用户 ${session.username} 已重新加入房间。`);
+        // ctx.logger.info(`用户 ${session.username} 已重新加入房间。`);
       }
     });
 
 
   ctx.platform("iirose")
-    .on('iirose/guild-member-leave' as any, (session: Session) =>
+    .on('guild-member-removed', (session: Session) =>
     {
       // 记录离开房间的用户
       if (session.username)
@@ -138,7 +138,7 @@ export function apply(ctx: Context, config: Config)
       // 检查点播这首歌曲的用户是否已经离开
       if (data?.owner)
       {
-        ctx.logger.info(`正在播放歌曲: ${data.title}, 点播者: ${data.owner}`);
+        // ctx.logger.info(`正在播放歌曲: ${data.title}, 点播者: ${data.owner}`);
         // 如果点歌者在已离开用户列表中
         if (leftUsers.has(data.owner))
         {
