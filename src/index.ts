@@ -1,4 +1,4 @@
-import { Context, Schema } from 'koishi';
+import { Context, h, Schema, Session } from 'koishi';
 
 export const name = 'iirose-cut';
 
@@ -61,5 +61,97 @@ export function apply(ctx: Context, config: Config)
       }
       await session.bot.internal.cutAll();
       return;
+    });
+
+
+  /* 从这里开始编辑一下内容。上面的不要修改 */
+
+  // 用于存储用户和他们点播的歌曲，主要用于调试和记录
+  const userSongs = new Map<string, Set<string>>(); // username -> Set<songTitle>
+  // 用于存储已离开房间的用户
+  const leftUsers = new Set<string>(); // Set<username>
+
+  // 插件卸载时清空数据
+  ctx.on('dispose', () =>
+  {
+    userSongs.clear();
+    leftUsers.clear();
+  });
+
+  ctx.platform("iirose")
+    .on('message', (session: Session) =>
+    {
+      // 监听消息，解析点歌信息
+      if (session.content.startsWith("<json"))
+      {
+        try
+        {
+          const jsonData = h.parse(session.content)[0].attrs.data;
+          // 确认是音乐点播消息
+          if (jsonData?.type === 'iirose:music' && jsonData.name && session.username)
+          {
+            const username = session.username;
+            const songTitle = jsonData.name;
+
+            // 记录用户点播的歌曲
+            if (!userSongs.has(username))
+            {
+              userSongs.set(username, new Set<string>());
+            }
+            userSongs.get(username).add(songTitle);
+            ctx.logger.info(`记录到用户 ${username} 点播了歌曲: ${songTitle}`);
+          }
+        } catch (e)
+        {
+          // JSON解析失败或格式不符，不是点歌消息，忽略
+        }
+      }
+    });
+
+  // 监听用户加入房间事件
+  ctx.platform("iirose")
+    .on('guild-member-added', (session: Session) =>
+    {
+      // 如果用户重新加入房间，则从“已离开”列表中移除
+      if (session.username && leftUsers.has(session.username))
+      {
+        leftUsers.delete(session.username);
+        ctx.logger.info(`用户 ${session.username} 已重新加入房间。`);
+      }
+    });
+
+
+  ctx.platform("iirose")
+    .on('iirose/guild-member-leave' as any, (session: Session) =>
+    {
+      // 记录离开房间的用户
+      if (session.username)
+      {
+        leftUsers.add(session.username);
+        ctx.logger.info(`用户 ${session.username} 已离开，其点播的歌曲将在播放时被切掉。`);
+      }
+    });
+
+  ctx.platform("iirose")
+    .on('iirose/music-play' as any, async (session: Session, data) =>
+    {
+      // 检查点播这首歌曲的用户是否已经离开
+      if (data?.owner)
+      {
+        ctx.logger.info(`正在播放歌曲: ${data.title}, 点播者: ${data.owner}`);
+        // 如果点歌者在已离开用户列表中
+        if (leftUsers.has(data.owner))
+        {
+          try
+          {
+            // 则切掉当前歌曲
+            await session.bot.internal.cutOne();
+            ctx.logger.info(`检测到点播者 ${data.owner} 已离开，已切掉歌曲: ${data.title}`);
+          } catch (e)
+          {
+            ctx.logger.warn(`自动切歌失败: ${e}`);
+          }
+        }
+      }
     });
 }
