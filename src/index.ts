@@ -1,6 +1,6 @@
 import { Context, Schema } from 'koishi';
 
-export const name = 'iirose-cut-song';
+export const name = 'iirose-cut';
 
 export const inject = ['database'];
 
